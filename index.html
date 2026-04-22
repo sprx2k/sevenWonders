@@ -2,102 +2,286 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>7 Wonders of the World</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>7 Wonders Explorer</title>
     <style>
-        /* Sidebar Styling */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f4f4f4;
+            overflow-x: hidden;
+        }
+
+        /* MENU BUTTON */
+        #menu-icon {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, background 0.3s ease, left 0.5s cubic-bezier(0.77, 0, 0.175, 1);
+        }
+
+        /* Hover animation for both states (Hamburger and Cross) */
+        #menu-icon:hover {
+            transform: scale(1.15);
+            background: #ff4757;
+        }
+
+        #menu-icon:hover .bar1, 
+        #menu-icon:hover .bar2, 
+        #menu-icon:hover .bar3 {
+            background-color: white;
+            width: 30px;
+        }
+
+        .bar1, .bar2, .bar3 {
+            width: 25px;
+            height: 3px;
+            background-color: #333;
+            margin: 3px 0;
+            transition: 0.4s;
+        }
+
+        /* Cross State */
+        .change .bar1 { transform: translateY(9px) rotate(-45deg); background: white !important; }
+        .change .bar2 { opacity: 0; }
+        .change .bar3 { transform: translateY(-9px) rotate(45deg); background: white !important; }
+        
+        .change#menu-icon {
+            background: rgba(255, 71, 87, 0.8); /* Translucent red when active */
+            left: 190px;
+        }
+
+        /* SIDEBAR with Translucent effect */
         .sidenav {
-            height: 100%; /* Full-height */
-            width: 0; /* 0 width - hidden by default */
-            position: fixed; /* Stay in place */
-            z-index: 1; /* Stay on top */
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 90;
             top: 0;
             left: 0;
-            background-color: rgba(0,0,0, 0.9); /* Black w/opacity */
-            overflow-x: hidden; /* Disable horizontal scroll */
-            padding-top: 60px; /* Place content 60px from the top */
-            transition: 0.5s; /* 0.5 second transition effect to slide in the sidenav */
+            background-color: rgba(17, 17, 17, 0.9); /* Translucent black */
+            backdrop-filter: blur(10px); /* Glass effect */
+            overflow-x: hidden;
+            transition: 0.5s cubic-bezier(0.77, 0, 0.175, 1);
+            padding-top: 60px;
         }
 
-        /* The navigation menu links */
+        /* NAV ITEM ENTRANCE */
+        .nav-item {
+            position: relative;
+            margin: 10px 20px;
+            opacity: 0;
+            transform: translateX(-20px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .open-nav .nav-item {
+            opacity: 1;
+            transform: translateX(0);
+            transition-delay: 0.3s; 
+        }
+
         .sidenav a {
-            padding: 8px 8px 8px 32px;
+            padding: 15px 12px;
             text-decoration: none;
-            font-size: 25px;
-            color: #818181;
+            font-size: 18px;
+            color: #ccc;
             display: block;
-            transition: 0.3s;
+            text-align: left;
+            position: relative;
+            z-index: 2;
         }
 
-        /* When you mouse over the navigation links, change their color */
-        .sidenav a:hover {
-            color: #f1f1f1;
-        }
-
-        /* Position and style the close button (top right corner) */
-        .sidenav .closebtn {
+        /* BOX HIGHLIGHT */
+        .nav-item::before, .nav-item::after {
+            content: '';
             position: absolute;
-            top: 0;
-            right: 25px;
-            font-size: 36px;
-            margin-left: 50px;
+            width: 0; height: 0;
+            border: 2px solid transparent;
+            box-sizing: border-box;
+            z-index: 1;
         }
+        .nav-item::before { top: 0; left: 0; }
+        .nav-item::after { bottom: 0; right: 0; }
 
-        /* Style page content - use this if you want the rest of the page to move */
+        .nav-item:hover::before {
+            width: 100%; height: 100%;
+            border-top-color: #ff4757; border-right-color: #ff4757;
+            transition: width 0.15s ease-out, height 0.15s ease-out 0.15s;
+        }
+        .nav-item:hover::after {
+            width: 100%; height: 100%;
+            border-bottom-color: #ff4757; border-left-color: #ff4757;
+            transition: border-bottom-color 0s ease-out 0.3s, width 0.15s ease-out 0.3s, height 0.15s ease-out 0.45s;
+        }
+        .nav-item:hover a { color: #fff; background-color: rgba(255, 71, 87, 0.2); }
+
+        /* MAIN CONTENT */
         #main {
-            transition: margin-left .5s;
-            padding: 20px;
+            transition: margin-left .5s cubic-bezier(0.77, 0, 0.175, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 80px 20px;
+            text-align: center;
         }
 
-        /* Menu Icon Styling */
-        .menu-trigger {
-            font-size: 30px;
+        /* PARALLAX MAP */
+        #map-container {
+            position: relative;
+            width: 100%;
+            max-width: 1000px;
+            height: 500px;
+            background: #accbe1;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin: 40px 0;
+        }
+
+        #world-map {
+            position: absolute;
+            width: 110%; height: 110%;
+            top: -5%; left: -5%;
+            background-image: url('https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg');
+            background-size: cover;
+            background-position: center;
+            transition: transform 0.1s ease-out;
+        }
+
+        .dot {
+            position: absolute;
+            width: 15px; height: 15px;
+            background: #ff4757;
+            border-radius: 50%;
             cursor: pointer;
-            padding: 10px;
-            background: #eee;
-            border-radius: 5px;
+            box-shadow: 0 0 10px #ff4757;
         }
 
-        /* Responsive adjustments */
-        @media screen and (max-height: 450px) {
-            .sidenav {padding-top: 15px;}
-            .sidenav a {font-size: 18px;}
+        .info-window {
+            position: absolute;
+            bottom: 25px; left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            width: 120px;
+            display: none;
+            color: #333;
+            font-size: 13px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+        .dot:hover .info-window { display: block; }
+
+        /* MOBILE FIXES */
+        @media screen and (max-width: 600px) {
+            #menu-icon { 
+                top: auto; 
+                bottom: 30px; 
+                left: 50%; 
+                transform: translateX(-50%); /* Base centering */
+                border-radius: 50%; 
+                background: #333;
+            }
+            #menu-icon .bar1, #menu-icon .bar2, #menu-icon .bar3 { background-color: white; }
+
+            /* Mobile Hover Fix: Use scale while maintaining the X centering */
+            #menu-icon:hover { 
+                transform: translateX(-50%) scale(1.15); 
+            }
+
+            .change#menu-icon { 
+                left: 50%; 
+                bottom: 30px; 
+                transform: translateX(-50%); 
+                background: #ff4757;
+            }
+
+            .sidenav { width: 100% !important; height: 0; top: auto; bottom: 0; }
+            .open-nav { height: 100% !important; }
+            .nav-item { margin: 10px 40px; }
+            #main { margin-left: 0 !important; }
         }
     </style>
 </head>
 <body>
 
+<div id="menu-icon" onclick="toggleNav(this)">
+    <div class="bar1"></div>
+    <div class="bar2"></div>
+    <div class="bar3"></div>
+</div>
+
 <div id="sidebar" class="sidenav">
-    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-    <a href="#home">Homepage</a>
-    <a href="#chichen">Chichén Itzá</a>
-    <a href="#christ">Christ the Redeemer</a>
-    <a href="#china">Great Wall of China</a>
-    <a href="#colosseum">The Colosseum</a>
-    <a href="#machu">Machu Picchu</a>
-    <a href="#petra">Petra</a>
-    <a href="#taj">Taj Mahal</a>
+    <div class="nav-item"><a href="#home">Home</a></div>
+    <div class="nav-item"><a href="#chichen">Chichén Itzá</a></div>
+    <div class="nav-item"><a href="#christ">Christ the Redeemer</a></div>
+    <div class="nav-item"><a href="#china">Great Wall of China</a></div>
+    <div class="nav-item"><a href="#colosseum">The Colosseum</a></div>
+    <div class="nav-item"><a href="#machu">Machu Picchu</a></div>
+    <div class="nav-item"><a href="#petra">Petra</a></div>
+    <div class="nav-item"><a href="#taj">Taj Mahal</a></div>
 </div>
 
 <div id="main">
-    <span class="menu-trigger" onclick="openNav()">&#9776; Menu</span>
-    
-    <h1>Seven New Wonders of the World</h1>
-    <p>Click the menu to explore the wonders.</p>
+    <h1>Seven New Wonders</h1>
+    <p>Hover over the map to explore</p>
 
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/tkByLXlrr4o" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+    <div id="map-container" onmousemove="parallax(event)">
+        <div id="world-map">
+            <div class="dot" style="top: 35%; left: 15%;"><div class="info-window"><b>Chichén Itzá</b></div></div>
+            <div class="dot" style="top: 70%; left: 30%;"><div class="info-window"><b>Christ the Redeemer</b></div></div>
+            <div class="dot" style="top: 30%; left: 80%;"><div class="info-window"><b>Great Wall</b></div></div>
+            <div class="dot" style="top: 38%; left: 52%;"><div class="info-window"><b>The Colosseum</b></div></div>
+            <div class="dot" style="top: 65%; left: 23%;"><div class="info-window"><b>Machu Picchu</b></div></div>
+            <div class="dot" style="top: 45%; left: 60%;"><div class="info-window"><b>Petra</b></div></div>
+            <div class="dot" style="top: 42%; left: 70%;"><div class="info-window"><b>Taj Mahal</b></div></div>
+        </div>
+    </div>
+
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/tkByLXlrr4o" frameborder="0" allowfullscreen></iframe>
 </div>
 
 <script>
-    /* Set the width of the side navigation to 250px and the left margin of the page content to 250px */
-    function openNav() {
-        document.getElementById("sidebar").style.width = "250px";
-        document.getElementById("main").style.marginLeft = "250px";
+    function parallax(e) {
+        const map = document.getElementById('world-map');
+        const container = document.getElementById('map-container');
+        const rect = container.getBoundingClientRect();
+        const x = (e.clientX - rect.left - rect.width/2) / 25;
+        const y = (e.clientY - rect.top - rect.height/2) / 25;
+        map.style.transform = `translate(${-x}px, ${-y}px)`;
     }
 
-    /* Set the width of the side navigation to 0 and the left margin of the page content to 0 */
-    function closeNav() {
-        document.getElementById("sidebar").style.width = "0";
-        document.getElementById("main").style.marginLeft = "0";
+    function toggleNav(x) {
+        x.classList.toggle("change");
+        const sidebar = document.getElementById("sidebar");
+        const main = document.getElementById("main");
+        const isMobile = window.innerWidth <= 600;
+
+        sidebar.classList.toggle("open-nav");
+
+        if (!isMobile) {
+            if (sidebar.style.width === "250px") {
+                sidebar.style.width = "0";
+                main.style.marginLeft = "0";
+            } else {
+                sidebar.style.width = "250px";
+                main.style.marginLeft = "250px";
+            }
+        }
     }
 </script>
 
