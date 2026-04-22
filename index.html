@@ -12,6 +12,30 @@
             background-color: #f4f4f4;
             overflow-x: hidden;
         }
+        /* TINTED BACKDROP - Desktop Only */
+        #menu-backdrop {
+            display: none;
+        }
+
+        @media screen and (min-width: 601px) {
+            #menu-backdrop {
+                display: block;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background: linear-gradient(to right, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.1) 100%);
+                z-index: 85; 
+                opacity: 0;
+                visibility: hidden;
+                transition: opacity 0.4s ease;
+            }
+            .open-nav #menu-backdrop {
+                opacity: 1;
+                visibility: visible;
+            }
+        }
 
         /* MENU BUTTON */
         #menu-icon {
@@ -29,7 +53,7 @@
             background: white;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease, background 0.3s ease, left 0.5s cubic-bezier(0.77, 0, 0.175, 1);
+            transition: left 0.5s cubic-bezier(0.77, 0, 0.175, 1), transform 0.3s ease, background 0.3s ease;
         }
 
         /* Hover animation for both states (Hamburger and Cross) */
