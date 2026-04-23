@@ -3,41 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>7 Wonders Explorer</title>
+    <title>Seven Wonders Explorer</title>
     <style>
+        :root {
+            --pink: #ffb6c1;
+            --pink-glass: rgba(255, 182, 193, 0.3);
+            --dark-glass: rgba(17, 17, 17, 0.85);
+        }
+
         body {
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #f4f4f4;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #eef2f3;
             overflow-x: hidden;
         }
-        /* TINTED BACKDROP - Desktop Only */
+				
+	/* --- ERROR MESSAGE --- */
+	#map-unseen {
+		display: none;
+		padding: 40px 20px;
+		text-align: center;
+		background: var(--pink-glass);
+		border-radius: 15px;
+		margin: 20px;
+		color: #333;
+		font-weight: bold;
+	}
+
+	/* --- LOADING SCREEN ---*/
+	#loader {
+		position: fixed;
+    		top: 0; left: 0;
+   		width: 100%; height: 100%;
+    		background: white;
+    		display: flex;
+    		justify-content: center;
+    		align-items: center;
+    		z-index: 10000 !important;
+    		transition: opacity 0.5s ease, visibility 0.5s;
+	}
+	
+	#ellipsis::after {
+		content: '';
+		animation: dots 1.5s steps(4, end) infinite;
+	}
+
+	@keyframes dots {
+		0%, 25% {content: '';}
+		50% { content: '.';}
+		75% { content: '..';}
+		100% { content: '...';}
+	}
+
+	.fade-out { 
+		opacity: 0;
+		visibility: hidden;
+	}
+	
+
+        /* --- DESKTOP BACKDROP --- */
         #menu-backdrop {
             display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.3);
+            z-index: 85;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s;
         }
+        body.open-nav #menu-backdrop { opacity: 1; visibility: visible; }
 
-        @media screen and (min-width: 601px) {
-            #menu-backdrop {
-                display: block;
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100vw;
-                height: 100vh;
-                background: linear-gradient(to right, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.1) 100%);
-                z-index: 85; 
-                opacity: 0;
-                visibility: hidden;
-                transition: opacity 0.4s ease;
-            }
-            .open-nav #menu-backdrop {
-                opacity: 1;
-                visibility: visible;
-            }
-        }
-
-        /* MENU BUTTON */
+        /* --- MENU ICON --- */
         #menu-icon {
             display: flex;
             flex-direction: column;
@@ -47,201 +86,219 @@
             position: fixed;
             top: 20px;
             left: 20px;
-            z-index: 100;
+            z-index: 1100;
             width: 50px;
             height: 50px;
             background: white;
             border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            /* Standard transition for desktop */
             transition: left 0.5s cubic-bezier(0.77, 0, 0.175, 1), transform 0.3s ease, background 0.3s ease;
         }
 
-        /* Hover animation for both states (Hamburger and Cross) */
-        #menu-icon:hover {
-            transform: scale(1.15);
-            background: #ff4757;
-        }
-
-        #menu-icon:hover .bar1, 
-        #menu-icon:hover .bar2, 
-        #menu-icon:hover .bar3 {
-            background-color: white;
-            width: 30px;
-        }
-
-        .bar1, .bar2, .bar3 {
-            width: 25px;
-            height: 3px;
-            background-color: #333;
-            margin: 3px 0;
-            transition: 0.4s;
-        }
-
-        /* Cross State */
+        #menu-icon:hover { transform: scale(1.1); background: var(--pink); }
+        .bar1, .bar2, .bar3 { width: 25px; height: 3px; background-color: #333; margin: 3px 0; transition: 0.4s; }
+        #menu-icon:hover .bar1,
+	#menu-icon:hover .bar2,
+	#menu-icon:hover .bar3 { 
+		background-color: white; 
+}
+        
         .change .bar1 { transform: translateY(9px) rotate(-45deg); background: white !important; }
         .change .bar2 { opacity: 0; }
         .change .bar3 { transform: translateY(-9px) rotate(45deg); background: white !important; }
-        
-        .change#menu-icon {
-            background: rgba(255, 71, 87, 0.8); /* Translucent red when active */
-            left: 190px;
-        }
 
-        /* SIDEBAR with Translucent effect */
+        @media screen and (min-width: 601px) {
+	    body.open-nav .sidenav {
+		width:250px;
+	    }
+	    body.open-nav #main {
+		margin-left: 250px;
+	    }
+	    #map-container {
+		display: block !important;
+	    }
+	    #map-unseen {
+		display: none !important;
+	    }
+	}
+
+            .change#menu-icon { left: 270px; background: rgba(255, 182, 193, 0.9) !important; }
+	    
+
+        /* --- SIDEBAR --- */
         .sidenav {
             height: 100%;
             width: 0;
             position: fixed;
-            z-index: 90;
-            top: 0;
-            left: 0;
-            background-color: rgba(17, 17, 17, 0.9); /* Translucent black */
-            backdrop-filter: blur(10px); /* Glass effect */
+            z-index: 1000;
+            top: 0; left: 0;
+            background-color: var(--dark-glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             overflow-x: hidden;
             transition: 0.5s cubic-bezier(0.77, 0, 0.175, 1);
-            padding-top: 60px;
+            padding-top: 40px;
         }
 
-        /* NAV ITEM ENTRANCE */
         .nav-item {
             position: relative;
-            margin: 10px 20px;
+            margin: 5px 20px;
             opacity: 0;
             transform: translateX(-20px);
             transition: opacity 0.4s ease, transform 0.4s ease;
         }
 
-        .open-nav .nav-item {
-            opacity: 1;
-            transform: translateX(0);
-            transition-delay: 0.3s; 
-        }
+        body.open-nav .nav-item { opacity: 1; transform: translateX(0); transition-delay: 0.3s; }
 
         .sidenav a {
-            padding: 15px 12px;
+            padding: 12px;
             text-decoration: none;
-            font-size: 18px;
-            color: #ccc;
+            font-size: 17px;
+            color: #eee;
             display: block;
-            text-align: left;
-            position: relative;
             z-index: 2;
+            position: relative;
         }
 
-        /* BOX HIGHLIGHT */
+        /* Border Animation */
         .nav-item::before, .nav-item::after {
             content: '';
             position: absolute;
             width: 0; height: 0;
             border: 2px solid transparent;
             box-sizing: border-box;
-            z-index: 1;
         }
         .nav-item::before { top: 0; left: 0; }
         .nav-item::after { bottom: 0; right: 0; }
 
         .nav-item:hover::before {
             width: 100%; height: 100%;
-            border-top-color: #ff4757; border-right-color: #ff4757;
-            transition: width 0.15s ease-out, height 0.15s ease-out 0.15s;
+            border-top-color: white; border-right-color: white;
+            transition: width 0.1s ease-out, height 0.1s ease-out 0.1s;
         }
         .nav-item:hover::after {
             width: 100%; height: 100%;
-            border-bottom-color: #ff4757; border-left-color: #ff4757;
-            transition: border-bottom-color 0s ease-out 0.3s, width 0.15s ease-out 0.3s, height 0.15s ease-out 0.45s;
+            border-bottom-color: white; border-left-color: white;
+            transition: width 0.1s ease-out 0.2s, height 0.1s ease-out 0.3s;
         }
-        .nav-item:hover a { color: #fff; background-color: rgba(255, 71, 87, 0.2); }
+        .nav-item:hover a { background: var(--pink-glass); color: white; }
 
-        /* MAIN CONTENT */
+        .nav-item.current::before { width: 100%; height: 100%; border: 2px solid white; }
+        .nav-item.current a { background: var(--pink-glass); font-weight: bold; color: white; }
+
+        /* --- MAP SECTION --- */
         #main {
-            transition: margin-left .5s cubic-bezier(0.77, 0, 0.175, 1);
+            transition: margin-left .5s;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 80px 20px;
-            text-align: center;
+            padding: 60px 20px;
         }
 
-        /* PARALLAX MAP */
         #map-container {
+	    display: block;
             position: relative;
-            width: 100%;
+            width: 90vw;
             max-width: 1000px;
-            height: 500px;
-            background: #accbe1;
-            border-radius: 15px;
+            aspect-ratio: 16/9;
+            background: #d1e3f0;
+            border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            margin: 40px 0;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            margin: 20px 0;
         }
 
         #world-map {
             position: absolute;
-            width: 110%; height: 110%;
-            top: -5%; left: -5%;
-            background-image: url('https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg');
-            background-size: cover;
+            width: 100%; height: 100%;
+            background-image: url('https://upload.wikimedia.org/wikipedia/commons/4/41/Simple_world_map.svg');
+            background-size: contain;
+            background-repeat: no-repeat;
             background-position: center;
-            transition: transform 0.1s ease-out;
         }
 
         .dot {
             position: absolute;
-            width: 15px; height: 15px;
-            background: #ff4757;
+            width: 14px; height: 14px;
+            background: #ffb6c1;
             border-radius: 50%;
             cursor: pointer;
-            box-shadow: 0 0 10px #ff4757;
+            box-shadow: 0 0 10px rgba(255, 107, 129, 0.6);
+            transform: translate(-50%, -50%);
+            transition: transform 0.3s;
+            z-index: 5;
         }
+        .dot:hover { transform: translate(-50%, -50%) scale(1.4); }
 
-        .info-window {
+        /* Tooltip Bubble */
+        .bubble {
             position: absolute;
-            bottom: 25px; left: 50%;
-            transform: translateX(-50%);
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
             background: white;
-            padding: 10px;
-            border-radius: 8px;
-            width: 120px;
-            display: none;
             color: #333;
-            font-size: 13px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            z-index: 10;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+            pointer-events: none;
         }
-        .dot:hover .info-window { display: block; }
+        .dot:hover .bubble { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
 
-        /* MOBILE FIXES */
+        /* --- MOBILE UI --- */
         @media screen and (max-width: 600px) {
-            #menu-icon { 
-                top: auto; 
-                bottom: 30px; 
-                left: 50%; 
-                transform: translateX(-50%); /* Base centering */
-                border-radius: 50%; 
+            #menu-icon {
+                top: auto;
+                bottom: 30px;
+                left: 50%;
+                /* Reset desktop transition to prevent sideways hover expansion */
+                transition: transform 0.3s ease, background 0.3s ease;
+                transform: translateX(-50%);
+                border-radius: 50%;
                 background: #333;
             }
-            #menu-icon .bar1, #menu-icon .bar2, #menu-icon .bar3 { background-color: white; }
-
-            /* Mobile Hover Fix: Use scale while maintaining the X centering */
-            #menu-icon:hover { 
-                transform: translateX(-50%) scale(1.15); 
+            /* Explicitly override hover to prevent horizontal shifts */
+            #menu-icon:hover {
+                transform: translateX(-50%) scale(1.1);
             }
-
-            .change#menu-icon { 
-                left: 50%; 
-                bottom: 30px; 
-                transform: translateX(-50%); 
-                background: #ff4757;
+            .change#menu-icon {
+                left: 50%;
+                transform: translateX(-50%);
+                background: var(--pink);
             }
-
-            .sidenav { width: 100% !important; height: 0; top: auto; bottom: 0; }
-            .open-nav { height: 100% !important; }
-            .nav-item { margin: 10px 40px; }
-            #main { margin-left: 0 !important; }
+            .sidenav { width: 100% !important; height: 0; top: auto; bottom: 0; padding-top: 20px; }
+            body.open-nav .sidenav { height: 100% !important; }
+		#menu-icon .bar1,
+		#menu-icon .bar2,
+		#menu-icon .bar3 {
+			background-color: white;
+		}
+	    #map-container {
+		display:none !important;
+	    }
+	    	
+	    #map-unseen {
+		display: block !important;
+	    }
         }
     </style>
 </head>
-<body>
+<body id="body-tag">
+
+<div id="loader">
+	<div class="loader-content">
+		<h1>Seven Wonders Explorer<span id="ellipsis"></span></h1>
+	</div>
+</div>
+
+<div id="menu-backdrop" onclick="toggleNav(document.getElementById('menu-icon'))"></div>
 
 <div id="menu-icon" onclick="toggleNav(this)">
     <div class="bar1"></div>
@@ -250,61 +307,82 @@
 </div>
 
 <div id="sidebar" class="sidenav">
-    <div class="nav-item"><a href="#home">Home</a></div>
-    <div class="nav-item"><a href="#chichen">Chichén Itzá</a></div>
-    <div class="nav-item"><a href="#christ">Christ the Redeemer</a></div>
-    <div class="nav-item"><a href="#china">Great Wall of China</a></div>
-    <div class="nav-item"><a href="#colosseum">The Colosseum</a></div>
-    <div class="nav-item"><a href="#machu">Machu Picchu</a></div>
-    <div class="nav-item"><a href="#petra">Petra</a></div>
-    <div class="nav-item"><a href="#taj">Taj Mahal</a></div>
+    <div class="nav-item current" onclick="setActive(this)"><a href="#World Map">World Map</a></div>
+    <div class="nav-item" onclick="setActive(this)"><a href="#chichen">Chichén Itzá</a></div>
+    <div class="nav-item" onclick="setActive(this)"><a href="#christ">Christ the Redeemer</a></div>
+    <div class="nav-item" onclick="setActive(this)"><a href="#china">Great Wall of China</a></div>
+    <div class="nav-item" onclick="setActive(this)"><a href="#colosseum">The Colosseum</a></div>
+    <div class="nav-item" onclick="setActive(this)"><a href="#machu">Machu Picchu</a></div>
+    <div class="nav-item" onclick="setActive(this)"><a href="#petra">Petra</a></div>
+    <div class="nav-item" onclick="setActive(this)"><a href="#taj">Taj Mahal</a></div>
 </div>
 
 <div id="main">
-    <h1>Seven New Wonders</h1>
-    <p>Hover over the map to explore</p>
-
-    <div id="map-container" onmousemove="parallax(event)">
+    <h1 style="color: #333;">- World Map -</h1>
+    <div id="map-unseen">
+	<p style="color: #333;"> Sorry, World Map is only avaliable for desktop</p>
+    </div>
+    <div id="map-container">
         <div id="world-map">
-            <div class="dot" style="top: 35%; left: 15%;"><div class="info-window"><b>Chichén Itzá</b></div></div>
-            <div class="dot" style="top: 70%; left: 30%;"><div class="info-window"><b>Christ the Redeemer</b></div></div>
-            <div class="dot" style="top: 30%; left: 80%;"><div class="info-window"><b>Great Wall</b></div></div>
-            <div class="dot" style="top: 38%; left: 52%;"><div class="info-window"><b>The Colosseum</b></div></div>
-            <div class="dot" style="top: 65%; left: 23%;"><div class="info-window"><b>Machu Picchu</b></div></div>
-            <div class="dot" style="top: 45%; left: 60%;"><div class="info-window"><b>Petra</b></div></div>
-            <div class="dot" style="top: 42%; left: 70%;"><div class="info-window"><b>Taj Mahal</b></div></div>
+            <div class="dot" style="top: 43%; left: 18%;"><div class="bubble">Chichén Itzá</div></div>
+            <div class="dot" style="top: 69%; left: 33%;"><div class="bubble">Christ the Redeemer</div></div>
+            <div class="dot" style="top: 30%; left: 82%;"><div class="bubble">Great Wall of China</div></div>
+            <div class="dot" style="top: 29%; left: 51%;"><div class="bubble">The Colosseum</div></div>
+            <div class="dot" style="top: 65%; left: 23%;"><div class="bubble">Machu Picchu</div></div>
+            <div class="dot" style="top: 37%; left: 58%;"><div class="bubble">Petra</div></div>
+            <div class="dot" style="top: 40%; left: 71%;"><div class="bubble">Taj Mahal</div></div>
         </div>
     </div>
-
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/tkByLXlrr4o" frameborder="0" allowfullscreen></iframe>
 </div>
 
 <script>
-    function parallax(e) {
-        const map = document.getElementById('world-map');
-        const container = document.getElementById('map-container');
-        const rect = container.getBoundingClientRect();
-        const x = (e.clientX - rect.left - rect.width/2) / 25;
-        const y = (e.clientY - rect.top - rect.height/2) / 25;
-        map.style.transform = `translate(${-x}px, ${-y}px)`;
+
+/* --- FADING LOGIC --- */
+// ADD THIS BACK: This handles the very first load
+window.addEventListener('load', () => {
+    const loader = document.getElementById('loader');
+    setTimeout(() => {
+        loader.classList.add('fade-out');
+    }, 1000);
+});
+
+let lastWidth = window.innerWidth;
+window.addEventListener('resize', () => {
+    const currentWidth = window.innerWidth;
+    const loader = document.getElementById('loader');
+    const menuBtn = document.getElementById('menu-icon');
+
+    if ((lastWidth > 600 && currentWidth <= 600) || (lastWidth <= 600 && currentWidth > 600)) {
+        document.body.classList.remove("open-nav");
+        if (menuBtn) menuBtn.classList.remove("change");
+
+        loader.classList.remove('fade-out');
+        // We use styles here to force it back to visible instantly
+        loader.style.visibility = "visible";
+        loader.style.opacity = "1";
+
+        setTimeout(() => {
+            loader.classList.add('fade-out');
+            // We clear the manual styles so the CSS class can take over again
+            loader.style.visibility = "";
+            loader.style.opacity = "";
+        }, 800);
+    }
+    lastWidth = currentWidth;
+});
+
+
+/* --- BUTTON LOGIC --- */
+    function toggleNav(btn) {
+        btn.classList.toggle("change");
+	document.body.classList.toggle("open-nav");
     }
 
-    function toggleNav(x) {
-        x.classList.toggle("change");
-        const sidebar = document.getElementById("sidebar");
-        const main = document.getElementById("main");
-        const isMobile = window.innerWidth <= 600;
-
-        sidebar.classList.toggle("open-nav");
-
-        if (!isMobile) {
-            if (sidebar.style.width === "250px") {
-                sidebar.style.width = "0";
-                main.style.marginLeft = "0";
-            } else {
-                sidebar.style.width = "250px";
-                main.style.marginLeft = "250px";
-            }
+    function setActive(el) {
+        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('current'));
+        el.classList.add('current');
+        if(window.innerWidth <= 600) {
+            setTimeout(() => toggleNav(document.getElementById('menu-icon')), 300);
         }
     }
 </script>
